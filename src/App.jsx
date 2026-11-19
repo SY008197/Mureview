@@ -57,13 +57,13 @@ export default function App() {
       setSearchError("");
       setHasSearched(true);
 
-      const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=song&limit=12`;
-      const response = await fetch(url);
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("검색 요청에 실패했습니다.");
+        throw new Error(data.error || "검색 요청에 실패했습니다.");
       }
 
-      const data = await response.json();
       setSearchResults(data.results || []);
     } catch (err) {
       setSearchError("노래 검색 중 오류가 발생했습니다: " + err.message);
@@ -223,11 +223,12 @@ export default function App() {
           {!isSearching && searchResults.length > 0 && (
             <div className="music-results-grid">
               {searchResults.map((track) => (
-                <div className="music-result-card" key={track.trackId}>
+                <div className="music-result-card" key={track.id}>
                   <img
                     className="music-result-cover"
-                    src={track.artworkUrl100 ? track.artworkUrl100.replace("100x100", "300x300") : "/img/featured_item_1.jpg"}
+                    src={track.artworkUrl}
                     alt={track.trackName}
+                    referrerPolicy="no-referrer"
                   />
                   <div className="music-result-info">
                     <h4 className="music-result-title" title={track.trackName}>
@@ -236,16 +237,19 @@ export default function App() {
                     <p className="music-result-artist" title={track.artistName}>
                       {track.artistName}
                     </p>
-                    <p className="music-result-album" title={track.collectionName}>
-                      {track.collectionName}
+                    <p className="music-result-album" title={track.albumName}>
+                      {track.albumName}
                     </p>
-                    {track.previewUrl && (
-                      <audio
-                        className="music-preview-audio"
-                        controls
-                        preload="none"
-                        src={track.previewUrl}
-                      />
+                    {track.musicUrl && (
+                      <a
+                        className="music-ytm-link"
+                        style={{ backgroundColor: "#4883ff" }}
+                        href={track.musicUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        음원 정보 보기
+                      </a>
                     )}
                   </div>
                 </div>
